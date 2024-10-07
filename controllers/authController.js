@@ -220,7 +220,7 @@ const login = async (req, res) => {
 
     console.log("Generating JWT token");
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
+      expiresIn: "30d",
     });
 
     console.log("Checking if IP or location has changed");
