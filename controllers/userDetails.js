@@ -1,4 +1,6 @@
 import User from "../models/users.js";
+import Post from "../models/post.js";
+import mongoose from "mongoose";
 import uploadImageToCloudinary from "../midleware/cloud.js";
 
 const updateUserDetails = async (req, res) => {
@@ -135,4 +137,65 @@ const searchUsers = async (req, res) => {
   }
 };
 
-export { updateUserDetails, getUserDetails, searchUsers };
+const getUserProfile = async (req, res) => {
+  console.log("getUserProfile called");
+  try {
+    console.log("Getting user ID from request params");
+    const { userId } = req.params;
+    console.log(`User ID: ${userId}`);
+
+    // Check if userId is valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      console.log("Invalid User ID format");
+      return res.status(400).json({ message: "Invalid User ID format" });
+    }
+
+    if (!userId || userId === "undefined") {
+      console.log("User ID is required");
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    console.log("Fetching user details");
+    // Fetch user details
+    const user = await User.findById(userId)
+      .select("-password -emailVerificationCode")
+      .populate("followers", "firstName lastName profilePicture")
+      .populate("following", "firstName lastName profilePicture");
+    console.log("User details:", user);
+
+    if (!user) {
+      console.log("User not found");
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    console.log("Fetching all posts by this user");
+    const posts = await Post.find({ author: userId })
+      .populate("author", "firstName lastName profilePicture")
+      .sort({ createdAt: -1 });
+    console.log("Posts:", posts);
+
+    console.log("Combining user details and posts into a single response");
+    res.status(200).json({
+      user: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profilePicture: user.profilePicture,
+        bio: user.bio,
+        followers: user.followers.length,
+        following: user.following.length,
+        totalPosts: user.totalPosts,
+        totalLikes: user.totalLikes,
+        totalComments: user.totalComments,
+        joinedDate: user.createdAt,
+        followersList: user.followers,
+        followingList: user.following,
+      },
+      posts, // Include user's posts in the response
+    });
+  } catch (error) {
+    console.error("Server error:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+export { updateUserDetails, getUserDetails, searchUsers, getUserProfile };

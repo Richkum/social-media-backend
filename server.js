@@ -4,10 +4,13 @@ import cors from "cors";
 import connectDB from "./config/db.js";
 import setUpRoutes from "./routes/index.js";
 import fileUpload from "express-fileupload";
+// import { socketIo } from "socket.io";
 
 dotenv.config();
 
 const app = express();
+
+// const io = socketIo();
 
 app.use(express.json());
 app.use(cors());
