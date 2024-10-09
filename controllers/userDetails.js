@@ -102,15 +102,23 @@ const getUserDetails = async (req, res) => {
 };
 
 const searchUsers = async (req, res) => {
+  console.log("searchUsers called");
   try {
-    const { query } = req.params;
+    console.log("Getting search query from request params");
+    const { query } = req.query;
+    console.log(`Search query: ${query}`);
+
     if (!query) {
+      console.log("Search query is required, returning 400");
       return res.status(400).json({ message: "Search query is required" });
     }
 
-    // Regular expression for partial and case-insensitive match
+    console.log(
+      "Creating regular expression for partial and case-insensitive match"
+    );
     const regex = new RegExp(query, "i");
 
+    console.log("Finding users with regex match");
     const users = await User.find({
       $or: [
         { firstName: { $regex: regex } },
@@ -126,10 +134,14 @@ const searchUsers = async (req, res) => {
       ],
     }).select("firstName lastName profilePicture"); // Select fields to return
 
+    console.log("Users found:", users);
+
     if (users.length === 0) {
+      console.log("No users found, returning 404");
       return res.status(404).json({ message: "No users found" });
     }
 
+    console.log("Returning users with 200 status");
     return res.status(200).json({ users });
   } catch (error) {
     console.error("Error searching users:", error);
