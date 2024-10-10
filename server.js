@@ -113,7 +113,7 @@ const app = express();
 // CORS setup
 app.use(
   cors({
-    origin: "http://localhost:3000", // Replace with your frontend URL
+    origin: process.env.FRONTEND_URL, // Replace with your frontend URL
     methods: ["GET", "POST"],
     credentials: true, // Allow credentials (important for withCredentials: true)
   })
@@ -124,7 +124,7 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000", // Replace with your frontend URL
+    origin: process.env.FRONTEND_URL, // Replace with your frontend URL
     methods: ["GET", "POST"],
     credentials: true, // Same here, allowing credentials
   },
