@@ -158,7 +158,6 @@ app.use(
 // Connect to the database
 connectDB();
 
-// Set up all routes
 setUpRoutes(app);
 
 // Start the server on the specified port
