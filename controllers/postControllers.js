@@ -158,7 +158,7 @@ const getAllPosts = async (req, res) => {
         select: "firstName lastName profilePicture",
       });
 
-    console.log("Posts fetched:", posts);
+    console.log("Posts fetched successfully:");
     return res.status(200).json({
       message: "Posts fetched successfully",
       posts,
@@ -328,7 +328,7 @@ const commentOnPost = async (req, res) => {
 
   try {
     console.log("Finding post by ID...");
-    const post = await Post.findById(postId);
+    const post = await Post.findById(postId).populate("author");
     if (!post) {
       console.log("Post not found, returning 404");
       return res.status(404).json({ message: "Post not found" });
@@ -346,21 +346,20 @@ const commentOnPost = async (req, res) => {
     await post.save();
     console.log("Post saved");
 
-    console.log(
-      "Incrementing total comments in the comment author's document..."
-    );
+    console.log("Incrementing total comments for the post author...");
 
-    // Check if the user exists before updating
-    const user = await User.findById(userId);
-    if (!user) {
-      console.log("User not found, returning 404");
-      return res.status(404).json({ message: "User not found" });
+    const postAuthorId = post.author._id;
+
+    // Increment total comments for the post's author
+    const postAuthor = await User.findById(postAuthorId);
+    if (!postAuthor) {
+      console.log("Post author not found, returning 404");
+      return res.status(404).json({ message: "Post author not found" });
     }
 
-    // Increment total comments for the user
-    user.totalComments = (user.totalComments || 0) + 1;
-    await user.save();
-    console.log("Updated comment author's document");
+    postAuthor.totalComments = (postAuthor.totalComments || 0) + 1;
+    await postAuthor.save();
+    console.log("Updated post author's total comments");
 
     return res.status(201).json({ message: "Comment added", post });
   } catch (error) {

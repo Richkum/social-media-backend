@@ -73,6 +73,34 @@ const updateUserDetails = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+// const getUserDetails = async (req, res) => {
+//   console.log("Getting user details");
+
+//   try {
+//     const userId = req.user.id;
+
+//     console.log("Finding user with id", userId);
+
+//     const user = await User.findById(userId).select(
+//       "-password -emailVerificationCode -emailVerificationCodeExpiresAt"
+//     );
+
+//     if (!user) {
+//       console.log("User not found, returning 404");
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     console.log("User found, returning 200");
+
+//     res
+//       .status(200)
+//       .json({ message: "User details fetched successfully", user });
+//   } catch (error) {
+//     console.error("Error getting user details", error);
+//     res.status(500).json({ message: "An error occurred", error });
+//   }
+// };
+
 const getUserDetails = async (req, res) => {
   console.log("Getting user details");
 
@@ -81,6 +109,7 @@ const getUserDetails = async (req, res) => {
 
     console.log("Finding user with id", userId);
 
+    // Fetch user details excluding sensitive information
     const user = await User.findById(userId).select(
       "-password -emailVerificationCode -emailVerificationCodeExpiresAt"
     );
@@ -90,11 +119,24 @@ const getUserDetails = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    console.log("User found, returning 200");
+    console.log("User found, fetching posts...");
 
-    res
-      .status(200)
-      .json({ message: "User details fetched successfully", user });
+    // Fetch posts created by the user, along with likes, comments, etc.
+    const userPosts = await Post.find({ author: userId })
+      .populate("author", "firstName lastName") // Get author's name
+      .populate("likes", "firstName lastName") // Populate who liked the post
+      .populate({
+        path: "comments.author", // Populate authors of comments
+        select: "firstName lastName",
+      });
+
+    console.log("Posts found, returning 200");
+
+    res.status(200).json({
+      message: "User details and posts fetched successfully",
+      user,
+      posts: userPosts,
+    });
   } catch (error) {
     console.error("Error getting user details", error);
     res.status(500).json({ message: "An error occurred", error });
