@@ -171,49 +171,6 @@ const getAllPosts = async (req, res) => {
   }
 };
 
-// const likePost = async (req, res) => {
-//   console.log("Liking post...");
-//   const { postId } = req.params;
-//   const userId = req.user.id; // Assuming user ID is extracted from the authentication middleware
-
-//   console.log("Finding post by ID", postId);
-//   try {
-//     // Find the post by ID
-//     const post = await Post.findById(postId);
-//     if (!post) {
-//       console.log("Post not found, returning 404");
-//       return res.status(404).json({ message: "Post not found" });
-//     }
-
-//     console.log("Checking if user already liked the post");
-//     // Check if user already liked the post
-//     const liked = post.likes.includes(userId);
-
-//     if (liked) {
-//       console.log("User already liked post, removing like");
-//       // If already liked, remove the like
-//       post.likes.pull(userId);
-//       post.totalLikes -= 1;
-//     } else {
-//       console.log("User hasn't liked post, adding like");
-//       // If not liked, add the like
-//       post.likes.push(userId);
-//       post.totalLikes += 1;
-//     }
-
-//     console.log("Saving post...");
-//     await post.save();
-//     console.log("Post saved");
-//     return res.status(200).json({
-//       message: liked ? "Like removed" : "Post liked",
-//       totalLikes: post.totalLikes,
-//     });
-//   } catch (error) {
-//     console.error("Error liking post:", error);
-//     return res.status(500).json({ message: "Something went wrong" });
-//   }
-// };
-
 const likePost = async (req, res) => {
   console.log("Liking post...");
 
@@ -270,47 +227,6 @@ const likePost = async (req, res) => {
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
-
-// const commentOnPost = async (req, res) => {
-//   console.log("Commenting on post...");
-//   const { postId } = req.params;
-//   console.log("Post ID:", postId);
-//   const userId = req.user.id;
-//   console.log("User ID:", userId);
-//   const { content } = req.body;
-//   console.log("Comment content:", content);
-
-//   if (!content) {
-//     console.log("Comment content is required, returning 400");
-//     return res.status(400).json({ message: "Comment content is required" });
-//   }
-
-//   try {
-//     console.log("Finding post by ID...");
-//     const post = await Post.findById(postId);
-//     if (!post) {
-//       console.log("Post not found, returning 404");
-//       return res.status(404).json({ message: "Post not found" });
-//     }
-
-//     console.log("Adding comment...");
-//     // Add the comment
-//     const newComment = {
-//       author: userId,
-//       content,
-//     };
-//     post.comments.push(newComment);
-//     post.totalComments += 1;
-
-//     console.log("Saving post...");
-//     await post.save();
-//     console.log("Post saved");
-//     return res.status(201).json({ message: "Comment added", post });
-//   } catch (error) {
-//     console.error("Error commenting on post:", error);
-//     return res.status(500).json({ message: "Something went wrong" });
-//   }
-// };
 
 const commentOnPost = async (req, res) => {
   console.log("Commenting on post...");

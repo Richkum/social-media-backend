@@ -3,6 +3,72 @@ import Post from "../models/post.js";
 import mongoose from "mongoose";
 import uploadImageToCloudinary from "../midleware/cloud.js";
 
+// const updateUserDetails = async (req, res) => {
+//   console.log("Updating user details");
+
+//   try {
+//     const { firstName, lastName, bio } = req.body;
+//     console.log("req.body", req.body);
+//     const userId = req.user.id;
+
+//     console.log("Finding user with id", userId);
+
+//     if (!userId) {
+//       console.log("User not found, returning 404");
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     console.log("Getting data from request body");
+
+//     if (!firstName && !lastName && !bio && !req.files?.profilePicture) {
+//       console.log("Nothing to update, returning 400");
+//       return res.status(400).json({ message: "Nothing to update" });
+//     }
+
+//     const updateData = {};
+
+//     console.log("Preparing data to update");
+
+//     if (firstName) {
+//       console.log("Updating first name");
+//       updateData.firstName = firstName;
+//     }
+//     if (lastName) {
+//       console.log("Updating last name");
+//       updateData.lastName = lastName;
+//     }
+//     if (bio) {
+//       console.log("Updating bio");
+//       updateData.bio = bio;
+//     }
+
+//     console.log("Checking if file is present");
+
+//     if (req.files?.profilePicture) {
+//       console.log("File is present, updating profile picture");
+//       const profilePicture = req.files.profilePicture.tempFilePath;
+
+//       console.log("Uploading image to cloudinary");
+//       const profilePictureUrl = await uploadImageToCloudinary(profilePicture);
+//       updateData.profilePicture = profilePictureUrl;
+//     }
+
+//     console.log("Updating user");
+
+//     const updateUser = await User.findByIdAndUpdate(req.user._id, updateData, {
+//       new: true,
+//     });
+
+//     console.log("User updated successfully, returning 200");
+//     res
+//       .status(200)
+//       .json({ message: "User updated successfully", user: updateUser });
+//   } catch (error) {
+//     console.error("Error updating user", error);
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
 const updateUserDetails = async (req, res) => {
   console.log("Updating user details");
 
@@ -18,8 +84,6 @@ const updateUserDetails = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    console.log("Getting data from request body");
-
     if (!firstName && !lastName && !bio && !req.files?.profilePicture) {
       console.log("Nothing to update, returning 400");
       return res.status(400).json({ message: "Nothing to update" });
@@ -27,44 +91,28 @@ const updateUserDetails = async (req, res) => {
 
     const updateData = {};
 
-    console.log("Preparing data to update");
-
-    if (firstName) {
-      console.log("Updating first name");
-      updateData.firstName = firstName;
-    }
-    if (lastName) {
-      console.log("Updating last name");
-      updateData.lastName = lastName;
-    }
-    if (bio) {
-      console.log("Updating bio");
-      updateData.bio = bio;
-    }
-
-    console.log("Checking if file is present");
+    if (firstName) updateData.firstName = firstName;
+    if (lastName) updateData.lastName = lastName;
+    if (bio) updateData.bio = bio;
 
     if (req.files?.profilePicture) {
-      console.log("File is present, updating profile picture");
       const profilePicture = req.files.profilePicture.tempFilePath;
-
       console.log("Uploading image to cloudinary");
       const profilePictureUrl = await uploadImageToCloudinary(profilePicture);
       updateData.profilePicture = profilePictureUrl;
     }
 
-    console.log("Updating user");
+    console.log("Updating user with data", updateData);
 
-    const updateUser = await User.findByIdAndUpdate(req.user._id, updateData, {
+    const updateUser = await User.findByIdAndUpdate(userId, updateData, {
       new: true,
     });
 
-    // if (!updateUser) {
-    //   console.log("User not found, returning 404");
-    //   return res.status(404).json({ message: "User not found" });
-    // }
+    if (!updateUser) {
+      return res.status(500).json({ message: "Failed to update user" });
+    }
 
-    console.log("User updated successfully, returning 200");
+    console.log("Updated user object: ", updateUser);
     res
       .status(200)
       .json({ message: "User updated successfully", user: updateUser });
@@ -73,33 +121,6 @@ const updateUserDetails = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-// const getUserDetails = async (req, res) => {
-//   console.log("Getting user details");
-
-//   try {
-//     const userId = req.user.id;
-
-//     console.log("Finding user with id", userId);
-
-//     const user = await User.findById(userId).select(
-//       "-password -emailVerificationCode -emailVerificationCodeExpiresAt"
-//     );
-
-//     if (!user) {
-//       console.log("User not found, returning 404");
-//       return res.status(404).json({ message: "User not found" });
-//     }
-
-//     console.log("User found, returning 200");
-
-//     res
-//       .status(200)
-//       .json({ message: "User details fetched successfully", user });
-//   } catch (error) {
-//     console.error("Error getting user details", error);
-//     res.status(500).json({ message: "An error occurred", error });
-//   }
-// };
 
 const getUserDetails = async (req, res) => {
   console.log("Getting user details");
@@ -109,10 +130,12 @@ const getUserDetails = async (req, res) => {
 
     console.log("Finding user with id", userId);
 
-    // Fetch user details excluding sensitive information
-    const user = await User.findById(userId).select(
-      "-password -emailVerificationCode -emailVerificationCodeExpiresAt"
-    );
+    const user = await User.findById(userId)
+      .select(
+        "-password -emailVerificationCode -emailVerificationCodeExpiresAt"
+      )
+      .populate("followers", "firstName lastName profilePicture")
+      .populate("following", "firstName lastName profilePicture");
 
     if (!user) {
       console.log("User not found, returning 404");
@@ -174,9 +197,7 @@ const searchUsers = async (req, res) => {
           },
         },
       ],
-    }).select("firstName lastName profilePicture"); // Select fields to return
-
-    console.log("Users found:", users);
+    }).select("firstName lastName profilePicture");
 
     if (users.length === 0) {
       console.log("No users found, returning 404");

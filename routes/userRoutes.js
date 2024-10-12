@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.get("/my-profile", authMiddleware, getUserDetails);
 
-router.put("/update-profile", authMiddleware, updateUserDetails);
+router.put("/update-profile/:userId", authMiddleware, updateUserDetails);
 
 router.get("/search-users", authMiddleware, searchUsers);
 

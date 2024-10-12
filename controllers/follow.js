@@ -76,4 +76,39 @@ const toggleFollowUser = async (req, res) => {
   }
 };
 
-export { toggleFollowUser };
+const getFriends = async (req, res) => {
+  console.log("getFriends called");
+  try {
+    const userId = req.user.id;
+    console.log("userId", userId);
+
+    // Find the user and populate their following and followers
+    const user = await User.findById(userId)
+      .populate("following", "_id firstName lastName profilePicture")
+      .populate("followers", "_id firstName lastName profilePicture")
+      .exec();
+
+    if (!user) {
+      console.log("User not found, returning 404");
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Find mutual followers (people who follow each other)
+    const friends = user.following.filter((followingUser) =>
+      user.followers.some(
+        (followerUser) =>
+          followerUser._id.toString() === followingUser._id.toString()
+      )
+    );
+    console.log("friends", friends);
+
+    return res.status(200).json(friends);
+  } catch (err) {
+    console.error("Error getting friends:", err);
+    return res
+      .status(500)
+      .json({ message: "Server error", error: err.message });
+  }
+};
+
+export { toggleFollowUser, getFriends };
